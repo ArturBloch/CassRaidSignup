@@ -1,0 +1,63 @@
+description = 'CassandraDemo'
+apply plugin: 'base'
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'application'
+
+eclipse {
+  jdt {
+    //if you want to alter the java versions (by default they are configured with gradle java plugin settings):
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    }
+  }
+
+
+allprojects {
+  tasks.withType(JavaExec) {
+    doFirst {
+//      println commandLine
+   }
+  }
+  sourceCompatibility = 1.8
+  targetCompatibility = 1.8
+}
+
+
+repositories {
+	maven { url "http://repo.springsource.org/libs-milestone" }
+	maven { url "http://repo.springsource.org/libs-release" }
+	mavenLocal()
+	mavenCentral()
+}
+
+dependencies {
+  compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.+'
+  compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.+'
+
+  compile 'com.datastax.cassandra:cassandra-driver-core:3.3.0'
+  compile 'org.apache.cassandra:cassandra-all:3.11.0'
+}
+
+configurations.all {
+//    exclude module: 'logback-classic'
+}
+
+project.buildDir = 'bin'
+
+mainClassName = "cassdemo.Main"
+
+run {
+    //systemProperty 'logback.configurationFile', 'logback.xml'
+    standardInput = System.in
+    
+    if(project.hasProperty('myargs')){
+        //String[] myargsArray = myargs.split(',')
+        String[] myargsArray = myargs.split(' ')
+        for (int i = 0; i < myargsArray.length; i++) 
+            myargsArray[i] = myargsArray[i].trim();
+        args(myargsArray)
+    }
+}
+
+

@@ -3,36 +3,39 @@ CREATE KEYSPACE IF NOT EXISTS Test
 
 USE Test;
 
-CREATE TABLE Users (
-  companyName varchar,
-  name varchar,
-  phone int,
-  street varchar,
-  pets list<varchar>,
-  PRIMARY KEY (companyName, name)
+CREATE TABLE IF NOT EXISTS groups
+(
+    group_id uuid,
+    group_name text,
+    max_role1 int,
+    max_role2 int,
+    max_role3 int,
+    max_role4 int,
+    max_role5 int,
+    PRIMARY KEY (group_id)
 );
 
-CREATE INDEX streetIndex ON Users (street);
-
-CREATE TABLE MeteoData (
-  stationName varchar, 
-  measurement timestamp, 
-  temperature double,
-  pressure double,
-  PRIMARY KEY (stationName, measurement)
+CREATE TABLE IF NOT EXISTS users
+(
+    user_id uuid,
+    user_name,
+    PRIMARY KEY (user_id)
 );
 
-CREATE TABLE MeteoData2 (
-  stationName varchar, 
-  mDay varchar,
-  measurement timestamp, 
-  temperature double,
-  pressure double,
-  PRIMARY KEY ((stationName, mDay), measurement)
+CREATE TABLE IF NOT EXISTS group_users
+(
+    group_id uuid,
+    user_id uuid,
+    roleName text,
+    addedAt timestamp,
+    PRIMARY KEY (group_id, user_id)
 );
 
-CREATE TABLE PageViewCounts (
-  url varchar,
-  views counter,
-  PRIMARY KEY(url)
+CREATE TABLE IF NOT EXISTS users_group
+(
+    user_id uuid,
+    group_id uuid,
+    roleName text,
+    addedAt timestamp,
+    PRIMARY KEY (user_id, group_id)
 );

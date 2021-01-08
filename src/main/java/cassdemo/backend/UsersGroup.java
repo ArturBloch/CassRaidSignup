@@ -3,6 +3,7 @@ package cassdemo.backend;
 import com.datastax.driver.mapping.annotations.Table;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.UUID;
 
 @Table(name = "users_group")
@@ -11,7 +12,7 @@ public class UsersGroup {
 	UUID group_id;
 	UUID user_id;
 	int roleName;
-	Timestamp addedAt;
+	Instant addedAt;
 	String status;
 
 	public UUID getGroup_id() {
@@ -38,11 +39,11 @@ public class UsersGroup {
 		this.roleName = roleName;
 	}
 
-	public Timestamp getAddedAt() {
+	public Instant getAddedAt() {
 		return addedAt;
 	}
 
-	public void setAddedAt(Timestamp addedAt) {
+	public void setAddedAt(Instant addedAt) {
 		this.addedAt = addedAt;
 	}
 

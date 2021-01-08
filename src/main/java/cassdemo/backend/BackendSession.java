@@ -1,6 +1,7 @@
 package cassdemo.backend;
 
 import com.datastax.driver.core.*;
+import com.datastax.driver.extras.codecs.jdk8.InstantCodec;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
 import org.joda.time.convert.Converter;
@@ -40,6 +41,8 @@ public class BackendSession {
 
 	public BackendSession(String contactPoint, String keyspace) throws BackendException {
 		Cluster cluster = Cluster.builder().addContactPoint(contactPoint).build();
+		cluster.getConfiguration().getCodecRegistry()
+		       .register(InstantCodec.instance);
 		try {
 			session = cluster.connect(keyspace);
 			manager = new MappingManager(session);
@@ -189,8 +192,9 @@ public class BackendSession {
 
 	public void insertUserIntoGroup(UUID groupId, UUID userId, int roleNumber, String status) throws BackendException {
 		BoundStatement bs = new BoundStatement(INSERT_USER_INTO_GROUP);
-		ZonedDateTime dateTime = ZonedDateTime.from(ZonedDateTime.now());
-		Timestamp timestamp = Timestamp.valueOf(dateTime.toLocalDateTime());
+		Instant timestamp = Instant.now();
+
+//		Timestamp timestamp = Timestamp.valueOf(dateTime.toLocalDateTime());
 
 		bs.bind(groupId, userId, roleNumber, timestamp, status, userId, groupId, roleNumber, timestamp, status);
 

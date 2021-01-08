@@ -1,11 +1,19 @@
 package cassdemo;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 
 import cassdemo.backend.BackendException;
 import cassdemo.backend.BackendSession;
+import cassdemo.backend.Group;
+import cassdemo.backend.User;
+
+// TODO: walidacje grup (statusy)
+// TODO: usuwanie grup
+// TODO: usuwanie użytkowników z grup (teoretycznie ponowna walidacja roli usuniętego użytkownika jeśli był on accepted)
+// TODO: zmiana ról użytkownika
 
 public class Main {
 
@@ -40,8 +48,13 @@ public class Main {
 		session.upsertGroup("testowi", 1, 2, 3, 4, 5);
 		session.upsertGroup("testowi2", 4, 4, 4, 4, 4);
 
-		session.selectAllUsers();
+		List<User> users = session.selectAllUsers();
+		List<Group> groups = session.selectAllGroups();
 
+		session.selectAllGroups();
+
+		session.insertUserIntoGroup(groups.get(0).getGroup_id(), users.get(0).getUser_id(), 0, "WAITING");
+		session.selectAllUsersGroup();
 
 //		String output = session.selectAll();
 //		session.deleteAll();

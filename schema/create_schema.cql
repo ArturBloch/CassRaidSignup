@@ -26,8 +26,9 @@ CREATE TABLE IF NOT EXISTS group_users
 (
     group_id uuid,
     user_id uuid,
-    roleName text,
+    roleName int,
     addedAt timestamp,
+    status text,
     PRIMARY KEY (group_id, user_id)
 );
 
@@ -35,7 +36,8 @@ CREATE TABLE IF NOT EXISTS users_group
 (
     user_id uuid,
     group_id uuid,
-    roleName text,
+    roleName int,
     addedAt timestamp,
+    status text,
     PRIMARY KEY (user_id, group_id)
 );

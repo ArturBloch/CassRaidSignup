@@ -1,20 +1,22 @@
 package cassdemo.backend;
 
+import com.datastax.driver.core.*;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
+import org.joda.time.convert.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.datastax.driver.core.BoundStatement;
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.PreparedStatement;
-import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
-import com.datastax.driver.core.Session;
-
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
+
 
 /*
  * For error handling done right see:
@@ -49,6 +51,8 @@ public class BackendSession {
 
 	private static PreparedStatement SELECT_ALL_FROM_USERS;
 	private static PreparedStatement SELECT_ALL_FROM_GROUPS;
+	private static PreparedStatement SELECT_ALL_FROM_USERS_GROUP;
+	private static PreparedStatement SELECT_ALL_FROM_GROUP_USERS;
 
 	private static PreparedStatement SELECT_ONE_FROM_USERS;
 	private static PreparedStatement SELECT_ONE_FROM_GROUPS;
@@ -56,8 +60,6 @@ public class BackendSession {
 	private static PreparedStatement INSERT_INTO_USERS;
 	private static PreparedStatement INSERT_INTO_GROUPS;
 	private static PreparedStatement INSERT_USER_INTO_GROUP;
-
-
 
 	private static PreparedStatement DELETE_ALL_FROM_USERS;
 	private static PreparedStatement DELETE_ALL_FROM_GROUPS;
@@ -74,10 +76,11 @@ public class BackendSession {
 
 			INSERT_USER_INTO_GROUP = session.prepare(
 				"BEGIN BATCH " +
-				"INSERT INTO group_users (group_id, user_id, roleName, addedAt) VALUES (?, ?, ?, ?);" +
-				"INSERT INTO users_group (user_id, group_id, roleName, addedAt) VALUES (?, ?, ?, ?);" +
+				"INSERT INTO group_users (group_id, user_id, roleName, addedAt, status) VALUES (?, ?, ?, ?, ?);" +
+				"INSERT INTO users_group (user_id, group_id, roleName, addedAt, status) VALUES (?, ?, ?, ?, ?);" +
 				"APPLY BATCH;" );
-
+			SELECT_ALL_FROM_USERS_GROUP = session.prepare("SELECT * FROM users_group;");
+			SELECT_ALL_FROM_GROUP_USERS = session.prepare("SELECT * FROM group_users;");
 			DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;");
 		} catch (Exception e) {
 			throw new BackendException("Could not prepare statements. " + e.getMessage() + ".", e);
@@ -86,7 +89,7 @@ public class BackendSession {
 		logger.info("Statements prepared");
 	}
 
-	public void selectAllUsers() throws BackendException {
+	public List<User> selectAllUsers() throws BackendException {
 		BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_USERS);
 		Mapper<User> userMapper =  manager.mapper(User.class);
 
@@ -105,9 +108,32 @@ public class BackendSession {
 			System.out.println(selectedUser);
 		}
 
+		return selectedUsers;
 	}
 
-	public void selectAllGroups() throws BackendException {
+	public List<UsersGroup> selectAllUsersGroup() throws BackendException {
+		BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_USERS_GROUP);
+		Mapper<UsersGroup> usersGroupMapper =  manager.mapper(UsersGroup.class);
+
+		ResultSet rs = null;
+		List<UsersGroup> selectResults = new ArrayList<>();
+
+		try {
+			rs = session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
+		}
+
+		selectResults = usersGroupMapper.map(rs).all();
+
+		for (UsersGroup result : selectResults) {
+			System.out.println(result);
+		}
+
+		return selectResults;
+	}
+
+	public List<Group> selectAllGroups() throws BackendException {
 		BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_GROUPS);
 		Mapper<Group> groupMapper =  manager.mapper(Group.class);
 
@@ -125,6 +151,8 @@ public class BackendSession {
 		for (Group selectedGroup : selectedGroups) {
 			System.out.println(selectedGroup);
 		}
+
+		return selectedGroups;
 	}
 
 
@@ -159,11 +187,12 @@ public class BackendSession {
 		logger.info("User " + groupName + " upserted with id: " + newUUID);
 	}
 
-	public void insertUserIntoGroup(String groupId, String userId, int roleNumber) throws BackendException {
+	public void insertUserIntoGroup(UUID groupId, UUID userId, int roleNumber, String status) throws BackendException {
 		BoundStatement bs = new BoundStatement(INSERT_USER_INTO_GROUP);
+		ZonedDateTime dateTime = ZonedDateTime.from(ZonedDateTime.now());
+		Timestamp timestamp = Timestamp.valueOf(dateTime.toLocalDateTime());
 
-		long timeStamp = System.nanoTime();
-		bs.bind(groupId, userId, roleNumber, timeStamp, userId, groupId, roleNumber, timeStamp);
+		bs.bind(groupId, userId, roleNumber, timestamp, status, userId, groupId, roleNumber, timestamp, status);
 
 		try {
 			session.execute(bs);
@@ -171,11 +200,11 @@ public class BackendSession {
 			throw new BackendException("Could not perform a delete operation. " + e.getMessage() + ".", e);
 		}
 
-
-
 		System.out.println("User added to group");
 		logger.info("All users deleted");
 	}
+
+
 
 	public void deleteAll() throws BackendException {
 		BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_USERS);

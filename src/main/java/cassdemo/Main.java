@@ -2,6 +2,7 @@ package cassdemo;
 
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Scanner;
 
 import cassdemo.backend.BackendException;
 import cassdemo.backend.BackendSession;
@@ -26,16 +27,41 @@ public class Main {
 			
 		BackendSession session = new BackendSession(contactPoint, keyspace);
 
-		session.upsertUser("PP", "Adam", 609, "A St");
-		session.upsertUser("PP", "Ola", 509, null);
-		session.upsertUser("UAM", "Ewa", 720, "B St");
-		session.upsertUser("PP", "Kasia", 713, "C St");
+		session.upsertUser("Artur");
+		session.upsertUser("Maciej");
+		session.upsertUser("Mariusz");
+
+		session.upsertGroup("testowi", 1, 2, 3, 4, 5);
+		session.upsertGroup("testowi2", 4, 4, 4, 4, 4);
+
 
 		String output = session.selectAll();
 		System.out.println("Users: \n" + output);
 
 		session.deleteAll();
 
-		System.exit(0);
+		Scanner in = new Scanner(System.in);
+
+		do{
+			String input = in.next();
+			System.out.println("Type x, u, g, testA, testB");
+			switch(input){
+				case "x" : {
+					return;
+				}
+				case "u" : {
+					break;
+				}
+				case "g" : {
+					break;
+				}
+				case "testA" : {
+					break;
+				}
+				case "testB" : {
+					break;
+				}
+			}
+		} while(true);
 	}
 }

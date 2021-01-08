@@ -1,5 +1,7 @@
 package cassdemo.backend;
 
+import com.datastax.driver.mapping.Mapper;
+import com.datastax.driver.mapping.MappingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +12,8 @@ import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /*
@@ -28,14 +32,15 @@ public class BackendSession {
 	private static final Logger logger = LoggerFactory.getLogger(BackendSession.class);
 
 	public static BackendSession instance = null;
+	public static MappingManager manager = null;
 
 	private Session session;
 
 	public BackendSession(String contactPoint, String keyspace) throws BackendException {
-
 		Cluster cluster = Cluster.builder().addContactPoint(contactPoint).build();
 		try {
 			session = cluster.connect(keyspace);
+			manager = new MappingManager(session);
 		} catch (Exception e) {
 			throw new BackendException("Could not connect to the cluster. " + e.getMessage() + ".", e);
 		}
@@ -43,21 +48,36 @@ public class BackendSession {
 	}
 
 	private static PreparedStatement SELECT_ALL_FROM_USERS;
-	private static PreparedStatement INSERT_INTO_USERS;
-	private static PreparedStatement DELETE_ALL_FROM_USERS;
-	private static PreparedStatement INSERT_INTO_GROUPS;
+	private static PreparedStatement SELECT_ALL_FROM_GROUPS;
 
-	private static final String USER_FORMAT = "- %-10s  %-16s %-10s %-10s\n";
-	// private static final SimpleDateFormat df = new
-	// SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private static PreparedStatement SELECT_ONE_FROM_USERS;
+	private static PreparedStatement SELECT_ONE_FROM_GROUPS;
+
+	private static PreparedStatement INSERT_INTO_USERS;
+	private static PreparedStatement INSERT_INTO_GROUPS;
+	private static PreparedStatement INSERT_USER_INTO_GROUP;
+
+
+
+	private static PreparedStatement DELETE_ALL_FROM_USERS;
+	private static PreparedStatement DELETE_ALL_FROM_GROUPS;
 
 	private void prepareStatements() throws BackendException {
 		try {
 			SELECT_ALL_FROM_USERS = session.prepare("SELECT * FROM users;");
+			SELECT_ALL_FROM_GROUPS = session.prepare("SELECT * FROM groups;");
+
 			INSERT_INTO_USERS     = session.prepare("INSERT INTO users (user_id, user_name) VALUES (?, ?);");
 			INSERT_INTO_GROUPS    = session.prepare(
 				"INSERT INTO groups (group_id, group_name, max_role1, max_role2, max_role3, max_role4, max_role5) VALUES (?, ?, ?, ?, ?," +
 				" " + "?, ?" + ")" + ";");
+
+			INSERT_USER_INTO_GROUP = session.prepare(
+				"BEGIN BATCH " +
+				"INSERT INTO group_users (group_id, user_id, roleName, addedAt) VALUES (?, ?, ?, ?);" +
+				"INSERT INTO users_group (user_id, group_id, roleName, addedAt) VALUES (?, ?, ?, ?);" +
+				"APPLY BATCH;" );
+
 			DELETE_ALL_FROM_USERS = session.prepare("TRUNCATE users;");
 		} catch (Exception e) {
 			throw new BackendException("Could not prepare statements. " + e.getMessage() + ".", e);
@@ -66,11 +86,12 @@ public class BackendSession {
 		logger.info("Statements prepared");
 	}
 
-	public String selectAll() throws BackendException {
-		StringBuilder builder = new StringBuilder();
+	public void selectAllUsers() throws BackendException {
 		BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_USERS);
+		Mapper<User> userMapper =  manager.mapper(User.class);
 
 		ResultSet rs = null;
+		List<User> selectedUsers = new ArrayList<>();
 
 		try {
 			rs = session.execute(bs);
@@ -78,17 +99,34 @@ public class BackendSession {
 			throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
 		}
 
-		for (Row row : rs) {
-			String rcompanyName = row.getString("companyName");
-			String rname = row.getString("name");
-			int rphone = row.getInt("phone");
-			String rstreet = row.getString("street");
+		selectedUsers = userMapper.map(rs).all();
 
-			builder.append(String.format(USER_FORMAT, rcompanyName, rname, rphone, rstreet));
+		for (User selectedUser : selectedUsers) {
+			System.out.println(selectedUser);
 		}
 
-		return builder.toString();
 	}
+
+	public void selectAllGroups() throws BackendException {
+		BoundStatement bs = new BoundStatement(SELECT_ALL_FROM_GROUPS);
+		Mapper<Group> groupMapper =  manager.mapper(Group.class);
+
+		ResultSet rs = null;
+		List<Group> selectedGroups = new ArrayList<>();
+
+		try {
+			rs = session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform a query. " + e.getMessage() + ".", e);
+		}
+
+		selectedGroups = groupMapper.map(rs).all();
+
+		for (Group selectedGroup : selectedGroups) {
+			System.out.println(selectedGroup);
+		}
+	}
+
 
 	public void upsertUser(String userName) throws BackendException {
 		UUID newUUID = UUID.randomUUID();
@@ -119,6 +157,24 @@ public class BackendSession {
 		}
 
 		logger.info("User " + groupName + " upserted with id: " + newUUID);
+	}
+
+	public void insertUserIntoGroup(String groupId, String userId, int roleNumber) throws BackendException {
+		BoundStatement bs = new BoundStatement(INSERT_USER_INTO_GROUP);
+
+		long timeStamp = System.nanoTime();
+		bs.bind(groupId, userId, roleNumber, timeStamp, userId, groupId, roleNumber, timeStamp);
+
+		try {
+			session.execute(bs);
+		} catch (Exception e) {
+			throw new BackendException("Could not perform a delete operation. " + e.getMessage() + ".", e);
+		}
+
+
+
+		System.out.println("User added to group");
+		logger.info("All users deleted");
 	}
 
 	public void deleteAll() throws BackendException {

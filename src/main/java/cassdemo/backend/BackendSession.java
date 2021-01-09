@@ -343,7 +343,7 @@ public class BackendSession {
 
 	public void insertUserIntoGroup(UUID groupId, UUID userId, int roleNumber, String status, Instant timestamp) throws BackendException {
 		BoundStatement bs = new BoundStatement(INSERT_USER_INTO_GROUP);
-
+		boolean validate = false;
 		UsersGroup prevUsersGroup = selectOneUserGroup(userId, groupId);
 
 		if(prevUsersGroup != null){
@@ -353,7 +353,12 @@ public class BackendSession {
 				} else {
 					timestamp = prevUsersGroup.getAddedAt();
 					status    = "WAITING";
+					validate = true;
 				}
+			} else if(!status.equals(prevUsersGroup.getStatus()) && prevUsersGroup.getRoleName() != roleNumber){
+				timestamp = prevUsersGroup.getAddedAt();
+				status    = "WAITING";
+				validate = true;
 			}
 		}
 
@@ -366,6 +371,10 @@ public class BackendSession {
 		}
 		//TODO: change logger info
 		logger.info("Inserted user into group");
+
+		if(validate){
+			groupValidation(groupId);
+		}
 	}
 
 	public void insertUserIntoGroup(UUID groupId, UUID userId, int roleNumber, String status) throws BackendException {

@@ -45,8 +45,8 @@ public class Main {
 		session.upsertUser("Maciej");
 		session.upsertUser("Mariusz");
 
-		session.upsertGroup("testowi", 1, 2, 3, 4, 5);
-		session.upsertGroup("testowi2", 4, 4, 4, 4, 4);
+		session.upsertGroup("testowi", 1, 2, 3);
+		session.upsertGroup("testowi2", 4, 4, 4, 4, 5, 6);
 
 		List<User> users = session.selectAllUsers();
 		List<Group> groups = session.selectAllGroups();

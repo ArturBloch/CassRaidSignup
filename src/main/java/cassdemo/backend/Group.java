@@ -2,18 +2,17 @@ package cassdemo.backend;
 
 import com.datastax.driver.mapping.annotations.Table;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Table(name = "groups")
 public class Group {
 
 	UUID group_id;
 	String group_name;
-	int max_role1;
-	int max_role2;
-	int max_role3;
-	int max_role4;
-	int max_role5;
+	List<Integer> role_max_spots;
 
 	public UUID getGroup_id() {
 		return group_id;
@@ -31,48 +30,17 @@ public class Group {
 		this.group_name = group_name;
 	}
 
-	public int getMax_role1() {
-		return max_role1;
+	public List<Integer> getRole_max_spots() {
+		return role_max_spots;
 	}
 
-	public void setMax_role1(int max_role1) {
-		this.max_role1 = max_role1;
-	}
-
-	public int getMax_role2() {
-		return max_role2;
-	}
-
-	public void setMax_role2(int max_role2) {
-		this.max_role2 = max_role2;
-	}
-
-	public int getMax_role3() {
-		return max_role3;
-	}
-
-	public void setMax_role3(int max_role3) {
-		this.max_role3 = max_role3;
-	}
-
-	public int getMax_role4() {
-		return max_role4;
-	}
-
-	public void setMax_role4(int max_role4) {
-		this.max_role4 = max_role4;
-	}
-
-	public int getMax_role5() {
-		return max_role5;
-	}
-
-	public void setMax_role5(int max_role5) {
-		this.max_role5 = max_role5;
+	public void setRole_max_spots(List<Integer> role_max_spots) {
+		this.role_max_spots = role_max_spots;
 	}
 
 	@Override public String toString() {
-		return "Group{" + "group_id=" + group_id + ", group_name='" + group_name + '\'' + ", max_role1=" + max_role1 + ", max_role2=" +
-		       max_role2 + ", max_role3=" + max_role3 + ", max_role4=" + max_role4 + ", max_role5=" + max_role5 + '}';
+		return "Group{" + "group_id=" + group_id + ", group_name='" + group_name + '\'' + ", role_max_spots=" + role_max_spots.stream().map(Object::toString)
+		                                                                                                            .collect(
+			                                                                                                            Collectors.joining(", ")) + '}';
 	}
 }

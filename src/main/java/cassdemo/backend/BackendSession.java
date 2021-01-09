@@ -12,10 +12,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 
 
@@ -74,8 +71,7 @@ public class BackendSession {
 
 			INSERT_INTO_USERS     = session.prepare("INSERT INTO users (user_id, user_name) VALUES (?, ?);");
 			INSERT_INTO_GROUPS    = session.prepare(
-				"INSERT INTO groups (group_id, group_name, max_role1, max_role2, max_role3, max_role4, max_role5) VALUES (?, ?, ?, ?, ?," +
-				" " + "?, ?" + ")" + ";");
+				"INSERT INTO groups (group_id, group_name, role_max_spots) VALUES (?, ?, ?);");
 
 			INSERT_USER_INTO_GROUP = session.prepare(
 				"BEGIN BATCH " +
@@ -174,12 +170,12 @@ public class BackendSession {
 		logger.info("User " + userName + " upserted with id: " + newUUID);
 	}
 
-	public void upsertGroup(String groupName, int... maxUsers) throws BackendException {
+	public void upsertGroup(String groupName, Integer... maxUsers) throws BackendException {
 		if(maxUsers.length < 5) return;
 
 		UUID newUUID = UUID.randomUUID();
 		BoundStatement bs = new BoundStatement(INSERT_INTO_GROUPS);
-		bs.bind(newUUID, groupName, maxUsers[0], maxUsers[1], maxUsers[2], maxUsers[3], maxUsers[4]);
+		bs.bind(newUUID, groupName, Arrays.asList(maxUsers));
 
 		try {
 			session.execute(bs);
@@ -187,14 +183,12 @@ public class BackendSession {
 			throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
 		}
 
-		logger.info("User " + groupName + " upserted with id: " + newUUID);
+		logger.info("Group " + groupName + " upserted with id: " + newUUID);
 	}
 
 	public void insertUserIntoGroup(UUID groupId, UUID userId, int roleNumber, String status) throws BackendException {
 		BoundStatement bs = new BoundStatement(INSERT_USER_INTO_GROUP);
 		Instant timestamp = Instant.now();
-
-//		Timestamp timestamp = Timestamp.valueOf(dateTime.toLocalDateTime());
 
 		bs.bind(groupId, userId, roleNumber, timestamp, status, userId, groupId, roleNumber, timestamp, status);
 

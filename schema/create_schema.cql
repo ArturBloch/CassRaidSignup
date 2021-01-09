@@ -7,11 +7,7 @@ CREATE TABLE IF NOT EXISTS groups
 (
     group_id uuid,
     group_name text,
-    max_role1 int,
-    max_role2 int,
-    max_role3 int,
-    max_role4 int,
-    max_role5 int,
+    role_max_spots list<int>,
     PRIMARY KEY (group_id)
 );
 

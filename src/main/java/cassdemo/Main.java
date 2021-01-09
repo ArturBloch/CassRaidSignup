@@ -4,18 +4,20 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.UUID;
 
 import cassdemo.backend.BackendException;
 import cassdemo.backend.BackendSession;
 import cassdemo.tables.Group;
 import cassdemo.tables.User;
+import cassdemo.tests.TestData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-// TODO: walidacje grup (statusy)
 // TODO: usuwanie grup
 // TODO: usuwanie użytkowników z grup (teoretycznie ponowna walidacja roli usuniętego użytkownika jeśli był on accepted)
 // TODO: zmiana ról użytkownika
+
 
 public class Main {
 
@@ -39,49 +41,49 @@ public class Main {
 
 		BackendSession session = new BackendSession(contactPoint, keyspace);
 
-		session.upsertUser("Artur");
-		session.upsertUser("Maciej");
-		session.upsertUser("Mariusz");
-
-		session.upsertGroup("testowi", 1, 2, 3);
-		session.upsertGroup("testowi2", 4, 4, 4, 4, 5, 6);
-
-		List<User> users = session.selectAllUsers();
-		List<Group> groups = session.selectAllGroups();
-
-		session.selectAllGroups();
-
-		session.insertUserIntoGroup(groups.get(0).getGroup_id(), users.get(0).getUser_id(), 0, "WAITING");
-		session.selectAllUsersGroup();
-
-//		String output = session.selectAll();
-//		session.deleteAll();
+		TestData testData = new TestData(session);
+		testData.addData();
 
 		System.out.println("Reading input");
 
 		Scanner in = new Scanner(System.in);
 		do{
-			System.out.println("Type x, u, g, testA, testB");
+			System.out.println("Type x, u, g, add, val, deleteU");
 			String input = in.nextLine();
 			switch(input){
 				case "x" : {
 					System.out.println("EXITING");
+					session.deleteAll();
 					System.exit(0);
 				}
 				case "u" : {
-					System.out.println("Adding users");
+					System.out.println("Type user name: ");
+					String name = in.nextLine();
+					testData.addUser(name);
 					break;
 				}
 				case "g" : {
-					System.out.println("Adding groups");
+					System.out.println("Type group name: ");
+					String name = in.nextLine();
+					testData.addGroup(name);
 					break;
 				}
-				case "testA" : {
-					System.out.println("Running testA");
+				case "add" : {
+					System.out.println("ADDING RANDOM USERS TO RANDOM GROUPS");
+					testData.addRandomUsersToRandomGroups();
 					break;
 				}
-				case "testB" : {
-					System.out.println("Running testB");
+				case "val" : {
+					System.out.println("VALIDATING GROUPS");
+					testData.validateAllGroups();
+					break;
+				}
+				case "deleteU": {
+					System.out.println("DELETING USER, GIVE USER ID");
+					String userID = in.nextLine();
+					System.out.println("GIVE GROUP ID");
+					String groupID = in.nextLine();
+					session.removeUserFromGroup(UUID.fromString(userID), UUID.fromString(groupID));
 					break;
 				}
 			}

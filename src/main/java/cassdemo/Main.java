@@ -9,6 +9,8 @@ import cassdemo.backend.BackendException;
 import cassdemo.backend.BackendSession;
 import cassdemo.backend.Group;
 import cassdemo.backend.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 // TODO: walidacje grup (statusy)
 // TODO: usuwanie grup
@@ -18,9 +20,10 @@ import cassdemo.backend.User;
 public class Main {
 
 	private static final String PROPERTIES_FILENAME = "config.properties";
+	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String[] args) throws IOException, BackendException {
-		System.out.println("Started main");
+		logger.debug("Main started");
 		String contactPoint = null;
 		String keyspace = null;
 
@@ -34,12 +37,7 @@ public class Main {
 			ex.printStackTrace();
 		}
 
-		System.out.println("before backend");
-
 		BackendSession session = new BackendSession(contactPoint, keyspace);
-
-		System.out.println("after backend");
-
 
 		session.upsertUser("Artur");
 		session.upsertUser("Maciej");

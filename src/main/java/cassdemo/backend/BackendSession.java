@@ -4,15 +4,13 @@ import com.datastax.driver.core.*;
 import com.datastax.driver.extras.codecs.jdk8.InstantCodec;
 import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
-import org.joda.time.convert.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
 
 
@@ -37,6 +35,7 @@ public class BackendSession {
 	private Session session;
 
 	public BackendSession(String contactPoint, String keyspace) throws BackendException {
+		logger.debug("Backend starting");
 		Cluster cluster = Cluster.builder().addContactPoint(contactPoint).build();
 		cluster.getConfiguration().getCodecRegistry()
 		       .register(InstantCodec.instance);
@@ -47,6 +46,7 @@ public class BackendSession {
 			throw new BackendException("Could not connect to the cluster. " + e.getMessage() + ".", e);
 		}
 		prepareStatements();
+		logger.debug("Backend successfully started");
 	}
 
 	private static PreparedStatement SELECT_ALL_FROM_USERS;
@@ -65,6 +65,7 @@ public class BackendSession {
 	private static PreparedStatement DELETE_ALL_FROM_GROUPS;
 
 	private void prepareStatements() throws BackendException {
+		logger.debug("Preparing statements / queries");
 		try {
 			SELECT_ALL_FROM_USERS = session.prepare("SELECT * FROM users;");
 			SELECT_ALL_FROM_GROUPS = session.prepare("SELECT * FROM groups;");
@@ -85,7 +86,7 @@ public class BackendSession {
 			throw new BackendException("Could not prepare statements. " + e.getMessage() + ".", e);
 		}
 
-		logger.info("Statements prepared");
+		logger.debug("Statements /queries prepared");
 	}
 
 	public List<User> selectAllUsers() throws BackendException {
@@ -104,7 +105,7 @@ public class BackendSession {
 		selectedUsers = userMapper.map(rs).all();
 
 		for (User selectedUser : selectedUsers) {
-			System.out.println(selectedUser);
+			logger.info(String.valueOf(selectedUser));
 		}
 
 		return selectedUsers;
@@ -126,7 +127,7 @@ public class BackendSession {
 		selectResults = usersGroupMapper.map(rs).all();
 
 		for (UsersGroup result : selectResults) {
-			System.out.println(result);
+			logger.info(String.valueOf(result));
 		}
 
 		return selectResults;
@@ -148,7 +149,7 @@ public class BackendSession {
 		selectedGroups = groupMapper.map(rs).all();
 
 		for (Group selectedGroup : selectedGroups) {
-			System.out.println(selectedGroup);
+			logger.info(String.valueOf(selectedGroup));
 		}
 
 		return selectedGroups;
@@ -198,7 +199,6 @@ public class BackendSession {
 			throw new BackendException("Could not perform a delete operation. " + e.getMessage() + ".", e);
 		}
 
-		System.out.println("User added to group");
 		logger.info("All users deleted");
 	}
 

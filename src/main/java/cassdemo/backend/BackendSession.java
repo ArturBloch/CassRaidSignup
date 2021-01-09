@@ -11,19 +11,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
-
-
-/*
- * For error handling done right see:
- * https://www.datastax.com/dev/blog/cassandra-error-handling-done-right
- *
- * Performing stress tests often results in numerous WriteTimeoutExceptions,
- * ReadTimeoutExceptions (thrown by Cassandra replicas) and
- * OpetationTimedOutExceptions (thrown by the client). Remember to retry
- * failed operations until success (it can be done through the RetryPolicy mechanism:
- * https://stackoverflow.com/questions/30329956/cassandra-datastax-driver-retry-policy )
- */
+import tables.Group;
+import tables.GroupUsers;
+import tables.User;
+import tables.UsersGroup;
 
 public class BackendSession {
 
@@ -198,11 +189,9 @@ public class BackendSession {
 		} catch (Exception e) {
 			throw new BackendException("Could not perform a delete operation. " + e.getMessage() + ".", e);
 		}
-
+		//TODO: change logger info
 		logger.info("All users deleted");
 	}
-
-
 
 	public void deleteAll() throws BackendException {
 		BoundStatement bs = new BoundStatement(DELETE_ALL_FROM_USERS);

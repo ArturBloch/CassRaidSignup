@@ -1,4 +1,4 @@
-package cassdemo.backend;
+package cassdemo.tables;
 
 import com.datastax.driver.mapping.annotations.Table;
 

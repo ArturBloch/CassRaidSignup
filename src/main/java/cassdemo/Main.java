@@ -7,8 +7,8 @@ import java.util.Scanner;
 
 import cassdemo.backend.BackendException;
 import cassdemo.backend.BackendSession;
-import cassdemo.backend.Group;
-import cassdemo.backend.User;
+import cassdemo.tables.Group;
+import cassdemo.tables.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -11,7 +11,6 @@ import com.datastax.driver.mapping.Mapper;
 import com.datastax.driver.mapping.MappingManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,11 +18,8 @@ import java.util.stream.Collectors;
 public class BackendSession {
 
 	private static final Logger logger = LoggerFactory.getLogger(BackendSession.class);
-
-	public static BackendSession instance = null;
 	public static MappingManager manager = null;
-
-	private Session session;
+	private final Session session;
 
 	public BackendSession(String contactPoint, String keyspace) throws BackendException {
 		logger.debug("Backend starting");
@@ -367,10 +363,10 @@ public class BackendSession {
 		try {
 			session.execute(bs);
 		} catch (Exception e) {
-			throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
+			throw new BackendException("Could not perform an insert. " + e.getMessage() + ".", e);
 		}
 
-		logger.info("User " + userName + " upserted with id: " + newUUID);
+		logger.info("User " + userName + " inserted with id: " + newUUID);
 	}
 
 	public void insertGroup(String groupName, Integer... maxUsers) throws BackendException {
@@ -382,10 +378,10 @@ public class BackendSession {
 		try {
 			session.execute(bs);
 		} catch (Exception e) {
-			throw new BackendException("Could not perform an upsert. " + e.getMessage() + ".", e);
+			throw new BackendException("Could not perform an insert. " + e.getMessage() + ".", e);
 		}
 
-		logger.info("Group " + groupName + " upserted with id: " + newUUID);
+		logger.info("Group " + groupName + " inserted with id: " + newUUID);
 	}
 
 	public void insertUserIntoGroup(UUID groupId, UUID userId, int roleNumber, String status, Instant timestamp) throws BackendException {

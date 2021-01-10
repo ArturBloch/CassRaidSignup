@@ -5,7 +5,7 @@ import cassandra.tests.TestData;
 
 public class StressTest implements Runnable{
 
-	private TestData testData;
+	private final TestData testData;
 
 	public StressTest(TestData testData) {
 		this.testData = testData;

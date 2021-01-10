@@ -1,5 +1,4 @@
 package cassandra;
-
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Scanner;
@@ -15,7 +14,7 @@ public class Main {
 	private static final String PROPERTIES_FILENAME = "config.properties";
 	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-	public static void main(String[] args) throws IOException, BackendException {
+	public static void main(String[] args) throws BackendException {
 		logger.debug("Main started");
 		String contactPoint = null;
 		String keyspace = null;

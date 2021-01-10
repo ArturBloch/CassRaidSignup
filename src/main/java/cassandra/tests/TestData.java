@@ -40,7 +40,6 @@ public class TestData {
 		session.insertUser("Karolina");
 		session.insertUser("Marianna");
 
-
 		/*Test groups*/
 		session.insertGroup("testowi", 2, 2, 3);
 		session.insertGroup("testowi2", 2, 4, 4, 4, 5, 6);

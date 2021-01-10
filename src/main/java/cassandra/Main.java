@@ -1,12 +1,12 @@
-package cassdemo;
+package cassandra;
 
 import java.io.IOException;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.UUID;
-import cassdemo.backend.BackendException;
-import cassdemo.backend.BackendSession;
-import cassdemo.tests.TestData;
+import cassandra.backend.BackendException;
+import cassandra.backend.BackendSession;
+import cassandra.tests.TestData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,10 +1,10 @@
-package cassdemo.tests;
+package cassandra.tests;
 
-import cassdemo.StressTest;
-import cassdemo.backend.BackendException;
-import cassdemo.backend.BackendSession;
-import cassdemo.tables.Group;
-import cassdemo.tables.User;
+import cassandra.StressTest;
+import cassandra.backend.BackendException;
+import cassandra.backend.BackendSession;
+import cassandra.tables.Group;
+import cassandra.tables.User;
 
 import java.util.List;
 import java.util.Random;

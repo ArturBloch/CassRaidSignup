@@ -1,8 +1,7 @@
-package cassdemo.tables;
+package cassandra.tables;
 
 import com.datastax.driver.mapping.annotations.Table;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;

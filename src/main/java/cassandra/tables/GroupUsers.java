@@ -1,8 +1,7 @@
-package cassdemo.tables;
+package cassandra.tables;
 
 import com.datastax.driver.mapping.annotations.Table;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 

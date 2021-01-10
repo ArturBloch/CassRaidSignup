@@ -1,4 +1,4 @@
-package cassdemo.tables;
+package cassandra.tables;
 
 import com.datastax.driver.mapping.annotations.Table;
 

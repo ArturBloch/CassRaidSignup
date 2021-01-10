@@ -1,10 +1,10 @@
-package cassdemo.backend;
+package cassandra.backend;
 
-import cassdemo.tables.Group;
-import cassdemo.tables.GroupUsers;
-import cassdemo.tables.User;
-import cassdemo.tables.UsersGroup;
-import cassdemo.tests.TestData;
+import cassandra.tables.Group;
+import cassandra.tables.GroupUsers;
+import cassandra.tables.User;
+import cassandra.tables.UsersGroup;
+import cassandra.tests.TestData;
 import com.datastax.driver.core.*;
 import com.datastax.driver.extras.codecs.jdk8.InstantCodec;
 import com.datastax.driver.mapping.Mapper;

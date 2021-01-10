@@ -1,7 +1,7 @@
-package cassdemo;
+package cassandra;
 
-import cassdemo.backend.BackendException;
-import cassdemo.tests.TestData;
+import cassandra.backend.BackendException;
+import cassandra.tests.TestData;
 
 public class StressTest implements Runnable{
 

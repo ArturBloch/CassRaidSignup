@@ -1,23 +1,14 @@
 package cassdemo;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 import java.util.UUID;
-
 import cassdemo.backend.BackendException;
 import cassdemo.backend.BackendSession;
-import cassdemo.tables.Group;
-import cassdemo.tables.User;
 import cassdemo.tests.TestData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-// TODO: usuwanie grup
-// TODO: usuwanie użytkowników z grup (teoretycznie ponowna walidacja roli usuniętego użytkownika jeśli był on accepted)
-// TODO: zmiana ról użytkownika
-
 
 public class Main {
 
@@ -34,7 +25,7 @@ public class Main {
 			properties.load(Main.class.getClassLoader().getResourceAsStream(PROPERTIES_FILENAME));
 
 			contactPoint = properties.getProperty("contact_point");
-			keyspace = properties.getProperty("keyspace");
+			keyspace     = properties.getProperty("keyspace");
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
@@ -44,33 +35,36 @@ public class Main {
 		testData.addData();
 
 		Scanner in = new Scanner(System.in);
-		do{
-			System.out.println("CassRaidSignup\nx - EXIT\nu - Add user\ng - Add group\nadd - Assign users to groups\nval - Validate groups\ndeleteU - Delete user from group");
+		do {
+			System.out.println(
+				"CassRaidSignup\nx - EXIT\nu - Add user\ng - Add group\nadd - Assign users to groups\nval - Validate groups\ndeleteU - " +
+				"Delete user from group\nstressTest - light stress test\nuberStressTest - run uber test");
 			String input = in.nextLine();
-			switch(input){
-				case "x" : {
+			switch (input) {
+				case "x": {
 					System.out.println("EXITING");
 					session.deleteAll();
 					System.exit(0);
 				}
-				case "u" : {
+				case "u": {
 					System.out.println("Type user name: ");
 					String name = in.nextLine();
 					testData.addUser(name);
 					break;
 				}
-				case "g" : {
+				case "g": {
 					System.out.println("Type group name: ");
 					String name = in.nextLine();
 					testData.addGroup(name);
 					break;
 				}
-				case "add" : {
+				case "add": {
 					System.out.println("ASSIGNING RANDOM EXISTING USERS TO RANDOM GROUPS");
 					testData.addRandomUsersToRandomGroups();
+					session.checkAllGroups();
 					break;
 				}
-				case "val" : {
+				case "val": {
 					System.out.println("VALIDATING GROUPS");
 					testData.validateAllGroups();
 					break;
@@ -84,7 +78,19 @@ public class Main {
 					session.removeUserFromGroup(UUID.fromString(userId), UUID.fromString(groupId));
 					break;
 				}
+				case "stressTest": {
+					testData.stressTest();
+					testData.session.checkAllGroups();
+					System.out.println("ROLES WITH TOO MANY PEOPLE ACCEPTED: " + testData.roleOverflowCounter);
+					break;
+				}
+				case "uberStressTest": {
+					testData.uberStressTest();
+					testData.session.checkAllGroups();
+					System.out.println("ROLES WITH TOO MANY PEOPLE ACCEPTED: " + testData.roleOverflowCounter);
+					break;
+				}
 			}
-		} while(true);
+		} while (true);
 	}
 }

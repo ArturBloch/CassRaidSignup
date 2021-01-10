@@ -4,6 +4,7 @@ import cassdemo.tables.Group;
 import cassdemo.tables.GroupUsers;
 import cassdemo.tables.User;
 import cassdemo.tables.UsersGroup;
+import cassdemo.tests.TestData;
 import com.datastax.driver.core.*;
 import com.datastax.driver.extras.codecs.jdk8.InstantCodec;
 import com.datastax.driver.mapping.Mapper;
@@ -42,7 +43,7 @@ public class BackendSession {
 	private static PreparedStatement SELECT_ALL_FROM_USERS;
 	private static PreparedStatement SELECT_ALL_FROM_GROUPS;
 	private static PreparedStatement SELECT_ALL_FROM_USERS_GROUP;
-	
+
 	/*Select by Id*/
 	private static PreparedStatement SELECT_ALL_USERS_FROM_GROUP_BY_ID;
 
@@ -125,9 +126,9 @@ public class BackendSession {
 
 		selectedUsers = userMapper.map(rs).all();
 
-		for (User selectedUser : selectedUsers) {
-			logger.info(String.valueOf(selectedUser));
-		}
+//		for (User selectedUser : selectedUsers) {
+//			logger.info(String.valueOf(selectedUser));
+//		}
 
 		return selectedUsers;
 	}
@@ -166,7 +167,7 @@ public class BackendSession {
 		}
 
 		selectedGroup = groupMapper.map(rs).one();
-		logger.debug("Group found by ID " + selectedGroup);
+//		logger.debug("Group found by ID " + selectedGroup);
 		return selectedGroup;
 	}
 
@@ -185,9 +186,9 @@ public class BackendSession {
 
 		selectResults = usersGroupMapper.map(rs).all();
 
-		for (UsersGroup result : selectResults) {
-			logger.info(String.valueOf(result));
-		}
+//		for (UsersGroup result : selectResults) {
+//			logger.info(String.valueOf(result));
+//		}
 
 		return selectResults;
 	}
@@ -207,9 +208,8 @@ public class BackendSession {
 		}
 
 		selectedResult = usersGroupMapper.map(rs).one();
-		logger.info(String.valueOf(selectedResult));
-		logger.debug("User found in group " + selectedResult);
-
+//		logger.info(String.valueOf(selectedResult));
+//		logger.debug("User found in group " + selectedResult);
 		return selectedResult;
 	}
 
@@ -228,8 +228,8 @@ public class BackendSession {
 		}
 
 		groupUsers.removeIf(e -> e.getUser_id().equals(userId) && e.getGroup_id().equals(groupId));
-
 		groupValidation(groupId, groupUsers);
+		groupPlaceCheck(groupId);
 	}
 
 	public void groupValidation(UUID groupId) throws BackendException {
@@ -257,8 +257,8 @@ public class BackendSession {
 
 			int howManyFreeSpots = chosenGroup.getRole_max_spots().get(roleId) - countUsersAccepted;
 			if (howManyFreeSpots > 0) {
-				System.out.println("ACCEPTING USERS");
-				System.out.println("FREE SPOTS " + howManyFreeSpots);
+//				System.out.println("ACCEPTING USERS");
+//				System.out.println("FREE SPOTS " + howManyFreeSpots);
 				List<GroupUsers> availableGroupUsers = groupUsers.stream()
 				                                                 .filter(
 					                                                 e -> !e.getStatus().equals("ACCEPTED") && e.getRoleName() == roleId)
@@ -276,11 +276,39 @@ public class BackendSession {
 			List<GroupUsers> rejectedGroupUsers = groupUsers.stream()
 			                                                .filter(e -> !e.getStatus().equals("ACCEPTED") && e.getRoleName() == roleId)
 			                                                .collect(Collectors.toList());
-			System.out.println("REJECTING USERS");
+//			System.out.println("REJECTING USERS");
 			for (GroupUsers rejectedGroupUser : rejectedGroupUsers) {
 				insertUserIntoGroup(groupId, rejectedGroupUser.getUser_id(), roleId, "REJECTED", rejectedGroupUser.getAddedAt());
 			}
 
+		}
+	}
+
+	public void groupPlaceCheck(UUID groupId) throws BackendException {
+		Group chosenGroup = selectedGroupById(groupId);
+		List<GroupUsers> groupUsers = selectAllGroupUsersByGroupId(groupId);
+		List<Integer> results = new ArrayList<>();
+		for (int i = 0; i < chosenGroup.getRole_max_spots().size(); i++) {
+			int roleId = i;
+
+			int countUsersAccepted = (int) groupUsers.stream()
+			                                         .filter(e -> e.getRoleName() == roleId && e.getStatus().equals("ACCEPTED"))
+			                                         .count();
+
+			results.add((chosenGroup.getRole_max_spots().get(roleId) - countUsersAccepted));
+		}
+		System.out.println("CHECKING GROUP " + groupId);
+		for (Integer result : results) {
+			if(result < 0) TestData.roleOverflowCounter.getAndIncrement();
+			System.out.print(result + " ");
+		}
+		System.out.println();
+	}
+
+	public void checkAllGroups() throws BackendException {
+		List<Group> allGroups = selectAllGroups();
+		for (Group selectedGroup : allGroups) {
+			groupPlaceCheck(selectedGroup.getGroup_id());
 		}
 	}
 
@@ -300,9 +328,9 @@ public class BackendSession {
 
 		selectResults = groupUsersMapper.map(rs).all();
 
-		for (GroupUsers result : selectResults) {
-			logger.info(String.valueOf(result));
-		}
+//		for (GroupUsers result : selectResults) {
+//			logger.info(String.valueOf(result));
+//		}
 
 		return selectResults;
 	}
@@ -322,15 +350,15 @@ public class BackendSession {
 
 		selectedGroups = groupMapper.map(rs).all();
 
-		for (Group selectedGroup : selectedGroups) {
-			logger.info(String.valueOf(selectedGroup));
-		}
+//		for (Group selectedGroup : selectedGroups) {
+//			logger.info(String.valueOf(selectedGroup));
+//		}
 
 		return selectedGroups;
 	}
 
 
-	public void upsertUser(String userName) throws BackendException {
+	public void insertUser(String userName) throws BackendException {
 		UUID newUUID = UUID.randomUUID();
 
 		BoundStatement bs = new BoundStatement(INSERT_INTO_USERS);
@@ -345,7 +373,7 @@ public class BackendSession {
 		logger.info("User " + userName + " upserted with id: " + newUUID);
 	}
 
-	public void upsertGroup(String groupName, Integer... maxUsers) throws BackendException {
+	public void insertGroup(String groupName, Integer... maxUsers) throws BackendException {
 
 		UUID newUUID = UUID.randomUUID();
 		BoundStatement bs = new BoundStatement(INSERT_INTO_GROUPS);
@@ -389,7 +417,7 @@ public class BackendSession {
 			throw new BackendException("Could not perform insert operation. " + e.getMessage() + ".", e);
 		}
 		
-		logger.info("Inserted user into group");
+//		logger.info("Inserted user into group");
 
 		if(validate){
 			groupValidation(groupId);

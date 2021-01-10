@@ -29,8 +29,8 @@ public class TestData {
 		session.upsertGroup("testowi", 2, 2, 3);
 		session.upsertGroup("testowi2", 2, 4, 4, 4, 5, 6);
 
-		//List<User> users = session.selectAllUsers();
-		//List<Group> groups = session.selectAllGroups();
+		List<User> users = session.selectAllUsers();
+		List<Group> groups = session.selectAllGroups();
 		//System.out.println(session.selectUserById(users.get(0).getUser_id()));
 
 		/*Assigning users into groups*/

@@ -40,15 +40,12 @@ public class Main {
 		}
 
 		BackendSession session = new BackendSession(contactPoint, keyspace);
-
 		TestData testData = new TestData(session);
 		testData.addData();
 
-		System.out.println("Reading input");
-
 		Scanner in = new Scanner(System.in);
 		do{
-			System.out.println("Type x, u, g, add, val, deleteU");
+			System.out.println("CassRaidSignup\nx - EXIT\nu - Add user\ng - Add group\nadd - Assign users to groups\nval - Validate groups\ndeleteU - Delete user from group");
 			String input = in.nextLine();
 			switch(input){
 				case "x" : {
@@ -69,7 +66,7 @@ public class Main {
 					break;
 				}
 				case "add" : {
-					System.out.println("ADDING RANDOM USERS TO RANDOM GROUPS");
+					System.out.println("ASSIGNING RANDOM EXISTING USERS TO RANDOM GROUPS");
 					testData.addRandomUsersToRandomGroups();
 					break;
 				}
@@ -79,11 +76,12 @@ public class Main {
 					break;
 				}
 				case "deleteU": {
-					System.out.println("DELETING USER, GIVE USER ID");
-					String userID = in.nextLine();
-					System.out.println("GIVE GROUP ID");
-					String groupID = in.nextLine();
-					session.removeUserFromGroup(UUID.fromString(userID), UUID.fromString(groupID));
+					System.out.println("Type userId: ");
+					String userId = in.nextLine();
+					System.out.println("Type groupId: ");
+					String groupId = in.nextLine();
+					System.out.println("DELETING USER " + userId + "from " + groupId);
+					session.removeUserFromGroup(UUID.fromString(userId), UUID.fromString(groupId));
 					break;
 				}
 			}

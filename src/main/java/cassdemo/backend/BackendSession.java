@@ -38,58 +38,76 @@ public class BackendSession {
 		logger.debug("Backend successfully started");
 	}
 
+	/*Select all*/
 	private static PreparedStatement SELECT_ALL_FROM_USERS;
 	private static PreparedStatement SELECT_ALL_FROM_GROUPS;
 	private static PreparedStatement SELECT_ALL_FROM_USERS_GROUP;
-	private static PreparedStatement SELECT_ONE_FROM_USERS_GROUP;
+	
+	/*Select by Id*/
 	private static PreparedStatement SELECT_ALL_USERS_FROM_GROUP_BY_ID;
 
-
+	/*Select one (by passing Id)*/
 	private static PreparedStatement SELECT_ONE_FROM_USERS;
 	private static PreparedStatement SELECT_ONE_FROM_GROUPS;
+	private static PreparedStatement SELECT_ONE_FROM_USERS_GROUP;
 
+	/*Insert*/
 	private static PreparedStatement INSERT_INTO_USERS;
 	private static PreparedStatement INSERT_INTO_GROUPS;
 	private static PreparedStatement INSERT_USER_INTO_GROUP;
 
-	private static PreparedStatement DELETE_USER_FROM_GROUP_BY_ID;
-
+	/*Delete all*/
 	private static PreparedStatement DELETE_ALL_FROM_USERS;
 	private static PreparedStatement DELETE_ALL_FROM_GROUPS;
 	private static PreparedStatement DELETE_ALL_FROM_USERS_GROUP;
 	private static PreparedStatement DELETE_ALL_FROM_GROUP_USERS;
 
+	/*Delete by Id*/
+	private static PreparedStatement DELETE_USER_FROM_GROUP_BY_ID;
 
 	private void prepareStatements() throws BackendException {
 		logger.debug("Preparing statements / queries");
 		try {
-			SELECT_ALL_FROM_USERS             = session.prepare("SELECT * FROM users;");
-			SELECT_ALL_FROM_GROUPS            = session.prepare("SELECT * FROM groups;");
-			SELECT_ONE_FROM_USERS             = session.prepare("SELECT * FROM users WHERE user_id=?;");
-			SELECT_ONE_FROM_GROUPS            = session.prepare("SELECT * FROM groups WHERE group_id=?;");
-			SELECT_ALL_USERS_FROM_GROUP_BY_ID = session.prepare("SELECT * FROM group_users WHERE group_id=?;");
-			INSERT_INTO_USERS                 = session.prepare("INSERT INTO users (user_id, user_name) VALUES (?, ?);");
-			INSERT_INTO_GROUPS                = session.prepare(
-				"INSERT INTO groups (group_id, group_name, role_max_spots) VALUES (?, ?, ?);");
-
-			INSERT_USER_INTO_GROUP      = session.prepare(
-				"BEGIN BATCH " + "INSERT INTO group_users (group_id, user_id, roleName, addedAt, status) VALUES (?, ?, ?, ?, ?);" +
-				"INSERT INTO users_group (user_id, group_id, roleName, addedAt, status) VALUES (?, ?, ?, ?, ?);" + "APPLY BATCH;");
+			/*Select all*/
+			SELECT_ALL_FROM_USERS       = session.prepare("SELECT * FROM users;");
+			SELECT_ALL_FROM_GROUPS      = session.prepare("SELECT * FROM groups;");
 			SELECT_ALL_FROM_USERS_GROUP = session.prepare("SELECT * FROM users_group;");
+			
+			/*Select by id*/
+			SELECT_ALL_USERS_FROM_GROUP_BY_ID = session.prepare("SELECT * FROM group_users WHERE group_id=?;");
+			
+			/*Select one (by passing id)*/
+			SELECT_ONE_FROM_USERS       = session.prepare("SELECT * FROM users WHERE user_id=?;");
+			SELECT_ONE_FROM_GROUPS      = session.prepare("SELECT * FROM groups WHERE group_id=?;");
 			SELECT_ONE_FROM_USERS_GROUP = session.prepare("SELECT * FROM users_group WHERE user_id=? AND group_id=?;");
 
+			/*Insert*/
+			INSERT_INTO_USERS  = session.prepare("INSERT INTO users (user_id, user_name) VALUES (?, ?);");
+			INSERT_INTO_GROUPS = session.prepare("INSERT INTO groups (group_id, group_name, role_max_spots) VALUES (?, ?, ?);");
+			INSERT_USER_INTO_GROUP      = session.prepare(
+				"BEGIN BATCH " + 
+				"INSERT INTO group_users (group_id, user_id, roleName, addedAt, status) VALUES (?, ?, ?, ?, ?);" +
+				"INSERT INTO users_group (user_id, group_id, roleName, addedAt, status) VALUES (?, ?, ?, ?, ?);" + 
+				"APPLY BATCH;");
+			
+			/*Delete All*/
+			DELETE_ALL_FROM_USERS       = session.prepare("TRUNCATE users;");
+			DELETE_ALL_FROM_GROUPS      = session.prepare("TRUNCATE groups;");
+			DELETE_ALL_FROM_USERS_GROUP = session.prepare("TRUNCATE group_users;");
+			DELETE_ALL_FROM_GROUP_USERS = session.prepare("TRUNCATE users_group;");
+
+			/*Delete by Id*/
 			DELETE_USER_FROM_GROUP_BY_ID = session.prepare(
-				"BEGIN BATCH DELETE FROM group_users WHERE group_id=? AND user_id=?; DELETE FROM users_group WHERE " +
-				"user_id=? AND group_id=?; APPLY BATCH;");
-			DELETE_ALL_FROM_USERS        = session.prepare("TRUNCATE users;");
-			DELETE_ALL_FROM_GROUPS       = session.prepare("TRUNCATE groups;");
-			DELETE_ALL_FROM_USERS_GROUP  = session.prepare("TRUNCATE group_users;");
-			DELETE_ALL_FROM_GROUP_USERS  = session.prepare("TRUNCATE users_group;");
-		} catch (Exception e) {
+				"BEGIN BATCH " + 
+				"DELETE FROM group_users WHERE group_id=? AND user_id=?; " + 
+				"DELETE FROM users_group WHERE user_id=? AND group_id=?; " + 
+				"APPLY BATCH;");
+					
+			} catch (Exception e) {
 			throw new BackendException("Could not prepare statements. " + e.getMessage() + ".", e);
 		}
 
-		logger.debug("Statements /queries prepared");
+		logger.debug("Statements and queries prepared");
 	}
 
 	public List<User> selectAllUsers() throws BackendException {
@@ -190,6 +208,7 @@ public class BackendSession {
 
 		selectedResult = usersGroupMapper.map(rs).one();
 		logger.info(String.valueOf(selectedResult));
+		logger.debug("User found in group " + selectedResult);
 
 		return selectedResult;
 	}
@@ -369,7 +388,7 @@ public class BackendSession {
 		} catch (Exception e) {
 			throw new BackendException("Could not perform insert operation. " + e.getMessage() + ".", e);
 		}
-		//TODO: change logger info
+		
 		logger.info("Inserted user into group");
 
 		if(validate){

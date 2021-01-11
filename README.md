@@ -1,5 +1,12 @@
 # CassRaidSignup
 
+### PROJECT IDEA
+
+This application allows for signing up users to groups.  
+Each group consists of multiple roles(given during group creation) and every role has limited spots for users to sign up.  
+The rule used for sign ups is "first come, first served" which means that users are added to groups with  a timestamp of their sign up and based on that and 
+availability of spots in the groups they are accepted during final group validation.
+
 ### DATABASE SCHEMA
 
 TABLES:
